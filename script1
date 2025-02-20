@@ -1,5 +1,4 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-
 local Window = Library.CreateLib("TITLE", "Midnight")
 
 -- First Tab
@@ -8,18 +7,12 @@ local Section1 = Tab1:NewSection("Section Name")
 
 -- Keybinds
 Section1:NewKeybind("GK", "KeybindInfo", Enum.KeyCode.K, function()
-    local args = {
-        [1] = "Home",
-        [2] = "GK"
-    }
+    local args = { [1] = "Home", [2] = "GK" }
     game:GetService("ReplicatedStorage").Packages.Knit.Services.TeamService.RE.Select:FireServer(unpack(args))
 end)
 
 Section1:NewKeybind("CF", "KeybindInfo", Enum.KeyCode.J, function()
-    local args = {
-        [1] = "Home",
-        [2] = "CF"
-    }
+    local args = { [1] = "Home", [2] = "CF" }
     game:GetService("ReplicatedStorage").Packages.Knit.Services.TeamService.RE.Select:FireServer(unpack(args))
 end)
 
@@ -38,15 +31,12 @@ end)
 
 -- Button to Select Position
 Section1:NewButton("Confirm Position(based on dropdown)", "Select the chosen position", function()
-    local args = {
-        [1] = "Home",
-        [2] = selectedPosition
-    }
+    local args = { [1] = "Home", [2] = selectedPosition }
     game:GetService("ReplicatedStorage").Packages.Knit.Services.TeamService.RE.Select:FireServer(unpack(args))
     print("Position Set: " .. selectedPosition)
 end)
 
--- New Tab for Shooting Mechanics
+-- === Shooting System === --
 local Tab2 = Window:NewTab("Shooting")
 local Section2 = Tab2:NewSection("Shooting Controls")
 
@@ -61,17 +51,37 @@ end)
 Section2:NewKeybind("Shoot", "Shoot the ball where the mouse is looking", Enum.KeyCode.Z, function()
     local mouse = game.Players.LocalPlayer:GetMouse()
     local direction = mouse.Hit.lookVector -- Get the direction the mouse is looking
-    
-    local args = {
-        [1] = power,
-        [4] = direction
-    }
-    
-    game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(unpack(args))
-    print("Shot fired with power: " .. power .. " in direction: " .. tostring(direction))
+
+    -- Play the animation
+    local animationId = "18668827116" -- Replace with your animation ID
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+    if humanoid then
+        local animator = humanoid:FindFirstChildOfClass("Animator")
+        if not animator then
+            animator = Instance.new("Animator")
+            animator.Parent = humanoid
+        end
+        
+        local animation = Instance.new("Animation")
+        animation.AnimationId = "rbxassetid://" .. animationId
+        
+        local animationTrack = animator:LoadAnimation(animation)
+        animationTrack:Play() -- Play the animation immediately
+
+        -- Play sound at the same time as the animation starts
+        game:GetService("ReplicatedStorage").Assets.Sfx.KingsImpact:Play()
+
+        -- Fire the shot immediately after animation starts
+        local args = { [1] = power, [4] = direction }
+        game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(unpack(args))
+        print("Shot fired with power: " .. power .. " in direction: " .. tostring(direction))
+    end
 end)
 
--- New Tab for Teleportation and Speed Control
+-- === Movement System === --
 local Tab3 = Window:NewTab("Movement")
 local Section3 = Tab3:NewSection("Teleportation")
 
