@@ -1,0 +1,92 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("TITLE", "DarkTheme")
+local Tab = Window:NewTab("TabName")
+local Section = Tab:NewSection("Section Name")
+
+-- Keybinds
+Section:NewKeybind("GK", "KeybindInfo", Enum.KeyCode.K, function()
+    local args = { [1] = "Home", [2] = "GK" }
+    game:GetService("ReplicatedStorage").Packages.Knit.Services.TeamService.RE.Select:FireServer(unpack(args))
+end)
+
+Section:NewKeybind("KeybindText", "KeybindInfo", Enum.KeyCode.J, function()
+    local args = { [1] = "Home", [2] = "CF" }
+    game:GetService("ReplicatedStorage").Packages.Knit.Services.TeamService.RE.Select:FireServer(unpack(args))
+end)
+
+Section:NewKeybind("KeybindText", "KeybindInfo", Enum.KeyCode.LeftShift, function()
+    Library:ToggleUI()
+end)
+
+-- Dropdown for Position Selection
+local positions = {"LW", "CF", "RW", "CB"} -- Add more positions as needed
+local selectedPosition = "GK" -- Default selection
+
+Section:NewDropdown("Choose Position", "Select a position to play", positions, function(value)
+    selectedPosition = value
+    print("Selected Position: " .. selectedPosition)
+end)
+
+-- Button to Select Position
+Section:NewButton("Confirm Position", "Select the chosen position", function()
+    local args = { [1] = "Home", [2] = selectedPosition }
+    game:GetService("ReplicatedStorage").Packages.Knit.Services.TeamService.RE.Select:FireServer(unpack(args))
+    print("Position Set: " .. selectedPosition)
+end)
+
+-- === SHOT SYSTEM === --
+local power = 110 -- Default power value
+Section:NewSlider("Shot Power", "Adjust the shot power", 200, 110, function(value)
+    power = value
+    print("Shot Power: " .. power)
+end)
+
+Section:NewKeybind("Shoot", "Shoot the ball where the mouse is looking", Enum.KeyCode.H, function()
+    local mouse = game.Players.LocalPlayer:GetMouse()
+    local direction = mouse.Hit.lookVector -- Get the direction the mouse is looking
+
+    -- Play the animation
+    local animationId = "18668827116" -- Replace with your animation ID
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+    if humanoid then
+        local animator = humanoid:FindFirstChildOfClass("Animator")
+        if not animator then
+            animator = Instance.new("Animator")
+            animator.Parent = humanoid
+        end
+        
+        local animation = Instance.new("Animation")
+        animation.AnimationId = "rbxassetid://" .. animationId
+        
+        local animationTrack = animator:LoadAnimation(animation)
+        animationTrack:Play() -- Play the animation immediately
+
+        -- Play sound at the same time as the animation starts
+        game:GetService("ReplicatedStorage").Assets.Sfx.KingsImpact:Play()
+
+        -- Fire the shot immediately after animation starts
+        local args = { [1] = power, [4] = direction }
+        game:GetService("ReplicatedStorage").Packages.Knit.Services.BallService.RE.Shoot:FireServer(unpack(args))
+        print("Shot fired with power: " .. power .. " in direction: " .. tostring(direction))
+
+        -- Modify the football's trail after shooting
+        local football = game.Workspace:WaitForChild("Football", 5) -- Wait 5 seconds if the ball isn't found immediately
+        local trail = football and football:FindFirstChild("Trail")
+        
+        if trail then
+            -- Change the trail's color
+            trail.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 57, 110)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(57, 110, 255))
+            })
+
+            -- Set properties for effect
+            trail.Lifetime = NumberRange.new(10)  -- Set lifetime to 10 seconds
+            trail.Brightness = 10                 -- Set brightness to 10
+            trail.EmissionEnabled = true          -- Enable emission effect
+        end
+    end
+end)
