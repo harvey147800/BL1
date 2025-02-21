@@ -1,0 +1,48 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("TITLE", "DarkTheme")
+local Tab = Window:NewTab("TabName")
+local Section = Tab:NewSection("Section Name")
+
+local active = false
+local upgradeActive = false
+local sliderValue = 4 -- Default value for the first argument
+
+Section:NewSlider("What numb ur on", "SliderInfo", 50, 0, function(s)
+    sliderValue = s -- Updates the first argument dynamically
+end)
+
+Section:NewToggle("Drop Objects", "Toggles object dropping", function(state)
+    active = state
+    if state then
+        task.spawn(function()
+            while active do
+                wait(0.0000000000000001)
+                print("Dropping Object, Value:", sliderValue)
+                
+                local args = {
+                    [1] = sliderValue, -- Uses the slider value dynamically
+                    [2] = Vector3.new(-331.0478210449219, -29.034318923950195, -105.97164154052734)
+                }
+
+                game:GetService("ReplicatedStorage").Event.Remote.Tower.ObjectDrop:FireServer(unpack(args))
+            end
+        end)
+    else
+        print("Object Dropping Off")
+    end
+end)
+
+Section:NewToggle("Auto Upgrade", "Toggles automatic upgrading", function(state)
+    upgradeActive = state
+    if state then
+        task.spawn(function()
+            while upgradeActive do
+                wait(0.5) -- Adjust delay to prevent spamming
+                print("Upgrading...")
+                game:GetService("ReplicatedStorage").Event.Remote.Tower.ButtonUpgrade:FireServer()
+            end
+        end)
+    else
+        print("Auto Upgrade Off")
+    end
+end)
